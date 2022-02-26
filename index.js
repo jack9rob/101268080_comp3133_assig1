@@ -13,13 +13,13 @@ const Booking = require('./models/Booking')
 var gqlSchema = buildSchema(
     ` 
     type User {
-        _id: ID!
+        _id: ID
         username: String!
-        firstname: String
-        lastname: String
-        password: String
+        firstname: String!
+        lastname: String!
+        password: String!
         email: String!
-        type: String
+        type: String!
     }
     type Listing {
         _id: ID
@@ -37,23 +37,39 @@ var gqlSchema = buildSchema(
         _id: ID
         listing_id: String
         booking_id: String
-        booking_date: Date
-        booking_start: Date
-        booking_end: Date
+        booking_date: String
+        booking_start: String
+        booking_end: String
         username: String
     }
     type Query {
-        getUsers: [User!]!
+        getUsers: [User]
+        getListings: [Listing]
+        getListingByTitle(title: String!): [Listing]
+        getListingByCity(city: String!): [Listing]
+        getListingByPostalCode(postalCode: String!): [Listing]
+        login(username: String!, password: String!): User
+        getBookingsByUser(username: String!): [Booking]
+        getListingsByAdmin(username: String!): [Listing]
     }
     type Mutation {
         createUser(username: String, firstname: String, lastname: String, password: String, email: String, type: String): User
         createListing(listing_id: String, listing_title: String, description: String, street: String, city: String, postal_code: String, price: Float, email: String, username: String): Listing
-        createBooking(listing_id: String, booking_id: String, bookding_date: Date, booking_start: Date, booking_end: Date, username: String): Booking
+        createBooking(listing_id: String, booking_id: String, booking_date: String, booking_start: String, booking_end: String, username: String): Booking
     }`
 )
 
 // root resolver
 var rootResolver = {
+    async login({username, password}) {
+        const user = await User.findOne({username, username})
+        if(user) {
+            if(user.password == password) {
+                return user
+            }
+        }
+        return null
+    },
     async createUser({username, firstname, lastname, password, email, type}) {
         const newUser = new User({username, firstname, lastname, password, email, type})
         const createdUser = await newUser.save()
@@ -64,7 +80,7 @@ var rootResolver = {
         if(userExists && userExists.type == 'admin'){
             const newListing = new Listing({listing_id, listing_title, description, street, city, postal_code, price, email, username})
             const createdListing = await newListing.save()
-            return creatingListing
+            return createdListing
         }
         console.log('admin not found')
         return null
@@ -78,6 +94,48 @@ var rootResolver = {
             const createBooking = await newBooking.save()
             return createBooking
         }
+        return null
+    },
+    async getListingByTitle({title}) {
+        const listings = await Listing.find({listing_title: title })
+        if(listings.length != 0) {
+            return listings
+        }
+        return null
+    },
+    async getListingByCity({city}) {
+        const listings = await Listing.find({city: city })
+        if(listings.length != 0) {
+            return listings
+        }
+        return null
+    },
+    async getListingByPostalCode({postalCode}) {
+        const listings = await Listing.find({postal_code: postalCode })
+        if(listings.length != 0) {
+            return listings
+        }
+        return null
+    },
+    async getListings() {
+        const listings = await Listing.find()
+        return listings
+    },
+    async getBookingsByUser({username}) {
+        const userExists = await User.findOne({username: username})
+        if(userExists) {
+            const bookings = await Booking.find({username: username}) 
+            return bookings
+        }
+        return null
+    },
+    async getListingsByAdmin({username}) {
+        const userExists = await User.findOne({username: username})
+        if(userExists && userExists.type == 'admin') {
+            const listings = await Listing.find({username: username}) 
+            return listings
+        }
+        return null
     }
 
 }

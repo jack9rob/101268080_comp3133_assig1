@@ -4,7 +4,7 @@ const ListingSchema = mongoose.Schema(
     {
         listing_id: {
             type: String,
-            required: true
+            required: true,
         },
         listing_title: {
             type: String,
