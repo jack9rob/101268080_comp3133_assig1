@@ -2,10 +2,6 @@ const mongoose = require('mongoose')
 
 const ListingSchema = mongoose.Schema(
     {
-        listing_id: {
-            type: String,
-            required: true,
-        },
         listing_title: {
             type: String,
             required: true
@@ -31,14 +27,10 @@ const ListingSchema = mongoose.Schema(
             required: true
         },
         email: {
-            // valid email format
             type: String,
             required: true
         },
         username: {
-            // admins user name, foreign, dont think this works
-            //type: mongoose.Schema.Types.ObjectId,
-            //ref: 'User'
             type: String,
             required: true
         }

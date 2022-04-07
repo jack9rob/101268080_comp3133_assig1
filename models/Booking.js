@@ -6,11 +6,6 @@ const BookingSchema = mongoose.Schema(
             type: String,
             required: true
         },
-        booking_id: {
-            type: String,
-            required: true,
-            unique: true
-        },
         booking_date: {
             type: Date,
             required: true
